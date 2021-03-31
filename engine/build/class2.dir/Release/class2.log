@@ -1,0 +1,8 @@
+﻿  Building Custom Rule C:/Users/anton/OneDrive/Ambiente de Trabalho/CG/tp1/code/CMakeLists.txt
+  main.cpp
+  generator.cpp
+generator.cpp(29,12): warning C4101: 'y1': unreferenced local variable
+generator.cpp(29,8): warning C4101: 'x1': unreferenced local variable
+generator.cpp(29,16): warning C4101: 'z1': unreferenced local variable
+  Generating Code...
+  class2.vcxproj -> C:\Users\anton\OneDrive\Ambiente de Trabalho\CG\tp1\code\build\Release\class2.exe

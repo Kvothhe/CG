@@ -1,0 +1,3 @@
+/home/kvothe/Desktop/cg/generator/cmake-build-debug/CMakeFiles/rebuild_cache.dir
+/home/kvothe/Desktop/cg/generator/cmake-build-debug/CMakeFiles/edit_cache.dir
+/home/kvothe/Desktop/cg/generator/cmake-build-debug/CMakeFiles/generator.dir

@@ -1,0 +1,24 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/kvothe/Desktop/cg/generator/generator.cpp
+string
+-
+generator.h
+/home/kvothe/Desktop/cg/generator/generator.h
+iostream
+-
+fstream
+-
+math.h
+-
+cstring
+-
+
+/home/kvothe/Desktop/cg/generator/generator.h
+
