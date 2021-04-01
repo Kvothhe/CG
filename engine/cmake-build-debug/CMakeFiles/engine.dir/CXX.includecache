@@ -13,6 +13,8 @@ GL/glut.h
 -
 cstdio
 -
+cstdlib
+-
 iostream
 -
 fstream

@@ -6,6 +6,7 @@
 
 
 #include <cstdio>
+#include <cstdlib>
 #include <iostream>
 #include <fstream>
 #include <list>
@@ -72,128 +73,145 @@ struct scale
 struct figure
 {
     char* model;
-    vertice* vertices; 
-    int* id;
+    vector<vertice> vertices;
+    vector<int> id;
 };
 
 struct figures
 {
-    figure* figuras;
-    scale* escalas;
-    rotate* rotacoes;
-    translate* translacoes;
+    vector<figure> figuras;
+    int contaFigs = 0;
+    vector<scale> escalas;
+    vector<rotate> rotacoes;
+    vector<translate> translacoes;
 };
 
-void readModel(tinyxml2::XMLElement *titleElement)
+
+void printFigures(figures* figs)
+{
+    for(int i = 0; i < figs->figuras.size(); i++)
+    {
+        printf("Fig: %s\n",figs->figuras[i].model);
+        for(int j = 0; j < figs->figuras[i].id.size(); j++)
+            printf("Sujeito ao id: %d\n", figs->figuras[i].id[j]);
+
+        printf("----------------------\n");
+    }
+}
+
+void readModel(tinyxml2::XMLElement *titleElement, figures* figs,vector<int> ids)
 {
     const char* file = (char*) malloc(20);
     titleElement = titleElement->FirstChildElement();
 
     while(titleElement)
     {
+        figure f{};
+        vector<int> vc;
         titleElement->QueryStringAttribute("file",&file);
-        printf("file: %s\n", file);
+        f.model = strdup(file);
+        for(int i = 0; i < ids.size(); i++)
+            vc.push_back(ids[i]);
+        f.id = vc;
+        figs->figuras.push_back(f);
         titleElement = titleElement->NextSiblingElement();
     }
 
 }
 
 
-void readGroup(tinyxml2::XMLElement *titleElement, figures* figs, int* ids)
+void readGroup(tinyxml2::XMLElement *titleElement, figures* figs, vector<int> ids)
 {
-    printf("Group:\n");
     int id = 0;
 
     titleElement = titleElement->FirstChildElement();
     if(strcmp(titleElement->Value(),"translate") == 0)
     {
-        figs->translacoes = (translate*) malloc(sizeof(translate*));
-        figs->translacoes->id = contaIds;
+        translate t{contaIds};
 
-        float xT,yT,zT;
-        titleElement->QueryFloatAttribute("X",&xT);
-        if(xT)
-            figs->translacoes[contaT].x = xT;
+        const char* str = (char*) malloc(sizeof(20));
+        titleElement->QueryStringAttribute("X",&str);
+        if(str)
+            t.x = atof(str),str = nullptr;
 
-        titleElement->QueryFloatAttribute("Y",&yT);
-        printf("ok1\n");
+        titleElement->QueryStringAttribute("Y",&str);
+        if(str)
+            t.y = atof(str),str = nullptr;
 
-        if(yT)
-            figs->translacoes[contaT].y = yT;
-        printf("ok2\n");
-        titleElement->QueryFloatAttribute("Z",&zT);
-        if(zT)
-            figs->translacoes[contaT].z = zT;
+
+        titleElement->QueryStringAttribute("Z",&str);
+        if(str)
+            t.z = atof(str);
+
+        figs->translacoes.push_back(t);
         titleElement = titleElement->NextSiblingElement();
         contaT++;
     }
 
     if(strcmp(titleElement->Value(),"rotate") == 0)
     {
-        figs->rotacoes = (rotate*) malloc(sizeof(rotate*));
-        figs->rotacoes->id = contaIds;
+        rotate r{contaIds};
 
-        float angle, axisX, axisY, axisZ;
-        titleElement->QueryFloatAttribute("angle",&angle);
-        if(angle)
-            figs->rotacoes[contaR].angle = angle;
+        const char* str = (char*) malloc(sizeof(20));
+        titleElement->QueryStringAttribute("angle",&str);
+        if(str)
+            r.angle = atof(str),str = nullptr;
 
-        titleElement->QueryFloatAttribute("axisX",&axisX);
-        if(axisX)
-            figs->rotacoes[contaR].aX = axisX;
+        titleElement->QueryStringAttribute("axisX",&str);
+        if(str)
+            r.aX = atof(str),str = nullptr;
 
-        titleElement->QueryFloatAttribute("axisY",&axisY);
-        if(axisY)
-            figs->rotacoes[contaR].aY = axisY;
+        titleElement->QueryStringAttribute("axisY",&str);
+        if(str)
+            r.aY = atof(str),str = nullptr;
 
-        titleElement->QueryFloatAttribute("axisZ",&axisZ);
-        if(axisZ)
-            figs->rotacoes[contaR].aZ = axisZ;
 
+        titleElement->QueryStringAttribute("axisZ",&str);
+        if(str)
+            r.aZ = atof(str);
+
+        figs->rotacoes.push_back(r);
         titleElement = titleElement->NextSiblingElement();
         contaR++;
     }
 
     if(strcmp(titleElement->Value(),"scale") == 0)
     {
-        figs->escalas = (scale*) malloc(sizeof(scale*));
-        figs->escalas->id = contaIds;
+        scale s{contaIds};
 
-        float xS,yS,zS;
-        titleElement->QueryFloatAttribute("X",&xS);
-        if(xS)
-            figs->escalas[contaS].x = xS;
+        const char* str = (char*) malloc(sizeof(20));
+        titleElement->QueryStringAttribute("X",&str);
+        if(str)
+            s.x = atof(str),str = nullptr;
 
-        titleElement->QueryFloatAttribute("Y",&yS);
-        if(yS)
-            figs->escalas[contaS].y = yS;
+        titleElement->QueryStringAttribute("Y",&str);
+        if(str)
+            s.y = atof(str),str = nullptr;
 
-        titleElement->QueryFloatAttribute("Z",&zS);
-        if(zS)
-            figs->escalas[contaS].z = zS;
+
+        titleElement->QueryStringAttribute("Z",&str);
+        if(str)
+            s.z = atof(str);
+
+        figs->escalas.push_back(s);
         titleElement = titleElement->NextSiblingElement();
         contaS++;
     }
 
     if(strcmp(titleElement->Value(),"models") == 0)
     {
-        //ids = (int *) (realloc(ids, sizeof(ids) * 2));
-        //ids[posIds] = contaIds;
-        printf("1\n");
-        readModel(titleElement);
-        printf("2\n");
-        posIds++;
-        contaIds++;
+        ids.push_back(contaIds);
+        readModel(titleElement, figs,ids);
     }
 
     titleElement = titleElement->NextSiblingElement();
     while (titleElement && strcmp(titleElement->Value(),"group") == 0)
     {
+        contaIds++;
         readGroup(titleElement, figs,ids);
-        posIds--;
+        ids.pop_back();
         titleElement = titleElement->NextSiblingElement();
     }
-    printf("End Group\n");
 }
 
 
@@ -201,10 +219,9 @@ void readGroup(tinyxml2::XMLElement *titleElement, figures* figs, int* ids)
 
 void readXml()
 {
-    int* ids = (int*) malloc(sizeof(int*));
-    ids[0] = -1;
+    figures* figs = (figures*) malloc(sizeof( figures));
+    vector<int> ids;
 
-    figures* figs = (figures*) malloc(sizeof(figures*));
     tinyxml2::XMLDocument doc;
     doc.LoadFile( "./teste.xml" );
 
@@ -219,6 +236,8 @@ void readXml()
     }
 
     printf("The end!\n");
+
+    printFigures(figs);
 }
 
 vector<string> split(const string& str, const string& delim)
