@@ -1,27 +1,90 @@
 <?xml version="1.0"?>
 <scene>
     <group>
-        <translate X="5" Y="0" Z="2" />
-        <rotate angle="45" axisX="0" axisY="1" axisZ="0" />
+        <translate X="-17" Y="1" Z="0"/>
+        <scale X="5.5" Y="5.5" Z="5.5"/>
+        <!-- SUN -->
         <models>
-            <model file="sphere.3d" />
+            <model file="sphere.3d"/>
         </models>
+
+        <!-- MERCURY -->
         <group>
-            <translate Y="1" />
+            <translate X="5.0" Y="0.0" Z="0.0"/>
+            <scale X="0.1" Y="0.1" Z="0.1"/>
             <models>
-                <model file="cone.3d" />
+                <model file="sphere.3d"/>
             </models>
+        </group>
+
+        <!-- VENUS -->
+        <group>
+            <translate X="10.4" Y="0" Z="0"/>
+            <scale X="0.2" Y="0.2" Z="0.2"/>
+            <models>
+                <model file="sphere.3d"/>
+            </models>
+        </group>
+
+        <!-- EARTH -->
+        <group>
+            <translate X="15.0" Y="0" Z="0"/>
+            <scale X="0.3" Y="0.3" Z="0.3"/>
+            <models>
+                <model file="sphere.3d"/>
+            </models>
+            <!-- MOON -->
             <group>
-                <translate X="1" />
+                <translate X="1" Y="1" Z="-1"/>
+                <scale X="0.2" Y="0.2" Z="0.2"/>
                 <models>
-                    <model file="cone.3d" />
+                    <model file="sphere.3d"/>
                 </models>
             </group>
         </group>
+
+        <!-- MARS -->
         <group>
-            <translate X="1" />
+            <translate X="20.7" Y="0" Z="0"/>
+            <scale X="0.25" Y="0.25" Z="0.25"/>
             <models>
-                <model file="cone.3d" />
+                <model file="sphere.3d"/>
+            </models>
+        </group>
+
+        <!-- JUPITER -->
+        <group>
+            <translate X="25.85" Y="0" Z="0"/>
+            <scale X="0.55" Y="0.55" Z="0.55"/>
+            <models>
+                <model file="sphere.3d"/>
+            </models>
+        </group>
+
+        <!-- SATURN -->
+        <group>
+            <translate X="30.16" Y="0" Z="0"/>
+            <scale X="0.45" Y="0.45" Z="0.45"/>
+            <models>
+                <model file="sphere.3d"/>
+            </models>
+        </group>
+
+        <!-- URANUS -->
+        <group>
+            <translate X="35.25" Y="0" Z="0"/>
+            <scale X="0.35" Y="0.35" Z="0.35"/>
+            <models>
+                <model file="sphere.3d"/>
+            </models>
+        </group>
+
+        <!-- NEPTUNE -->
+        <group>
+            <translate X="40.1" Y="0" Z="0"/>
+            <scale X="0.3" Y="0.3" Z="0.3"/>
+            <models>
+                <model file="sphere.3d"/>
             </models>
         </group>
     </group>

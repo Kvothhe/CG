@@ -8,6 +8,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <iostream>
+#include <vector>
 #include <fstream>
 #include <list>
 
@@ -30,10 +31,6 @@ float xScale = 1.0f;
 float yScale = 1.0f;
 float zScale = 1.0f;
 int contaIds = 0;
-int posIds = 0;
-int contaT = 0;
-int contaR = 0;
-int contaS = 0;
 
 GLenum drawType = GL_FILL;
 
@@ -80,12 +77,27 @@ struct figure
 struct figures
 {
     vector<figure> figuras;
-    int contaFigs = 0;
     vector<scale> escalas;
     vector<rotate> rotacoes;
     vector<translate> translacoes;
 };
 
+figures* globalFigs;
+
+void printTransf(figures* figs, int id)
+{
+    for(int j = 0 ; j < figs->translacoes.size() ;j++)
+        if(figs->translacoes[j].id == id)
+            printf("Translate: X=%f, Y=%f, Z=%f\n",figs->translacoes[j].x,figs->translacoes[j].y,figs->translacoes[j].z);
+
+    for(int j = 0 ; j < figs->rotacoes.size() ;j++)
+        if(figs->rotacoes[j].id == id)
+            printf("Rotate: angle=%f, axisX=%f, axisY=%f, axisZ=%f\n",figs->rotacoes[j].angle,figs->rotacoes[j].aX,figs->rotacoes[j].aY,figs->rotacoes[j].aZ);
+
+    for(int j = 0 ; j < figs->escalas.size() ;j++)
+        if(figs->escalas[j].id == id)
+            printf("Scale: X=%f, Y=%f, Z=%f\n",figs->escalas[j].x,figs->escalas[j].y,figs->escalas[j].z);
+}
 
 void printFigures(figures* figs)
 {
@@ -93,11 +105,57 @@ void printFigures(figures* figs)
     {
         printf("Fig: %s\n",figs->figuras[i].model);
         for(int j = 0; j < figs->figuras[i].id.size(); j++)
-            printf("Sujeito ao id: %d\n", figs->figuras[i].id[j]);
+            printTransf(figs,figs->figuras[i].id[j]);
 
         printf("----------------------\n");
     }
 }
+
+vector<string> split(const string& str, const string& delim)
+{
+    vector<string> tokens;
+    size_t prev = 0, pos = 0;
+    do
+    {
+        pos = str.find(delim, prev);
+        if (pos == string::npos) pos = str.length();
+        string token = str.substr(prev, pos-prev);
+        if (!token.empty()) tokens.push_back(token);
+        prev = pos + delim.length();
+    }
+    while (pos < str.length() && prev < str.length());
+    return tokens;
+}
+
+vector<vertice> ler(const char *ficheiro) {
+
+    FILE *fp = fopen(ficheiro, "r");
+    if (fp == NULL)
+        exit(EXIT_FAILURE);
+
+    char *line = NULL;
+    size_t len = 0;
+    getline(&line, &len, fp);
+    int point = stoi(line);
+    vector<vertice> v;
+    vertice vet{point};
+    v.push_back(vet);
+    std::string delimiter = " ";
+    std::string token;
+    vector<string> tokens;
+    while ((getline(&line, &len, fp)) != -1) {
+        std::string lineS(line);
+        tokens = split(lineS, " ");
+        vertice vAux{0,stof(tokens[0]),stof(tokens[1]),stof(tokens[2])};
+        v.push_back(vAux);
+    }
+    fclose(fp);
+    if (line)
+        free(line);
+
+    return v;
+}
+
 
 void readModel(tinyxml2::XMLElement *titleElement, figures* figs,vector<int> ids)
 {
@@ -113,6 +171,12 @@ void readModel(tinyxml2::XMLElement *titleElement, figures* figs,vector<int> ids
         for(int i = 0; i < ids.size(); i++)
             vc.push_back(ids[i]);
         f.id = vc;
+
+        char* auxDest = (char*) malloc(sizeof(char)*20);
+        strcpy(auxDest,"./");
+        strcat(auxDest,f.model);
+        f.vertices = ler(auxDest);
+
         figs->figuras.push_back(f);
         titleElement = titleElement->NextSiblingElement();
     }
@@ -145,7 +209,6 @@ void readGroup(tinyxml2::XMLElement *titleElement, figures* figs, vector<int> id
 
         figs->translacoes.push_back(t);
         titleElement = titleElement->NextSiblingElement();
-        contaT++;
     }
 
     if(strcmp(titleElement->Value(),"rotate") == 0)
@@ -172,7 +235,6 @@ void readGroup(tinyxml2::XMLElement *titleElement, figures* figs, vector<int> id
 
         figs->rotacoes.push_back(r);
         titleElement = titleElement->NextSiblingElement();
-        contaR++;
     }
 
     if(strcmp(titleElement->Value(),"scale") == 0)
@@ -195,13 +257,13 @@ void readGroup(tinyxml2::XMLElement *titleElement, figures* figs, vector<int> id
 
         figs->escalas.push_back(s);
         titleElement = titleElement->NextSiblingElement();
-        contaS++;
     }
 
     if(strcmp(titleElement->Value(),"models") == 0)
     {
         ids.push_back(contaIds);
         readModel(titleElement, figs,ids);
+
     }
 
     titleElement = titleElement->NextSiblingElement();
@@ -209,7 +271,8 @@ void readGroup(tinyxml2::XMLElement *titleElement, figures* figs, vector<int> id
     {
         contaIds++;
         readGroup(titleElement, figs,ids);
-        ids.pop_back();
+        if(ids.size() > 1)
+            ids.pop_back();
         titleElement = titleElement->NextSiblingElement();
     }
 }
@@ -217,7 +280,7 @@ void readGroup(tinyxml2::XMLElement *titleElement, figures* figs, vector<int> id
 
 
 
-void readXml()
+figures* readXml()
 {
     figures* figs = (figures*) malloc(sizeof( figures));
     vector<int> ids;
@@ -235,58 +298,14 @@ void readXml()
             readGroup(titleElement,figs,ids);
     }
 
-    printf("The end!\n");
+    //printf("The end!\n");
 
-    printFigures(figs);
+    //printFigures(figs);
+
+    return figs;
 }
 
-vector<string> split(const string& str, const string& delim)
-{
-    vector<string> tokens;
-    size_t prev = 0, pos = 0;
-    do
-    {
-        pos = str.find(delim, prev);
-        if (pos == string::npos) pos = str.length();
-        string token = str.substr(prev, pos-prev);
-        if (!token.empty()) tokens.push_back(token);
-        prev = pos + delim.length();
-    }
-    while (pos < str.length() && prev < str.length());
-    return tokens;
-}
 
-vertice* ler(const char *ficheiro) {
-
-    FILE *fp = fopen(ficheiro, "r");
-    if (fp == NULL)
-        exit(EXIT_FAILURE);
-
-    char *line = NULL;
-    size_t len = 0;
-    getline(&line, &len, fp);
-    int point = stoi(line);
-    struct vertice* arr = (vertice *) malloc(sizeof(struct vertice) * (point+1));
-    arr[0].ponto = point;
-    std::string delimiter = " ";
-    size_t pos = 0;
-    std::string token;
-    vector<string> tokens;
-    int i = 1;
-    while ((getline(&line, &len, fp)) != -1) {
-        std::string lineS(line);
-        tokens = split(lineS, " ");
-        arr[i].x = stof(tokens[0]);
-        arr[i].y = stof(tokens[1]);
-        arr[i].z = stof(tokens[2]);
-        //printf("%f %f %f %d %d\n",arr[i].x,arr[i].y,arr[i].z,i,arr[0].ponto);
-        i++;
-    }
-    fclose(fp);
-    if (line)
-        free(line);
-    return arr;
-}
 
 void changeSize(int w, int h) {
 
@@ -331,9 +350,9 @@ void drawAxis() {
 	glEnd();
 }
 
-void draw(int points,vertice* arr){
-    drawAxis();
-
+void draw(vector<vertice> arr){
+    //drawAxis();
+    int points = arr[0].ponto;
     glBegin(GL_LINES);
 
     for(int i = 1; i<=points;i+=3){
@@ -351,6 +370,31 @@ void draw(int points,vertice* arr){
     glEnd();
 }
 
+void applyTransf(int i)
+{
+    for(int ids = 0 ; ids < globalFigs->figuras[i].id.size() ;ids++) {
+        for (int t = 0; t < globalFigs->translacoes.size(); t++) {
+            if (globalFigs->figuras[i].id[ids] == globalFigs->translacoes[t].id)
+            {
+                printf("Translate: %f, %f, %f\n", globalFigs->translacoes[t].x, globalFigs->translacoes[t].y, globalFigs->translacoes[t].z);
+                glTranslatef(globalFigs->translacoes[t].x, globalFigs->translacoes[t].y, globalFigs->translacoes[t].z);
+            }
+        }
+        printf("------------------------\n");
+
+        for (int t = 0; t < globalFigs->rotacoes.size(); t++){
+            if (globalFigs->figuras[i].id[ids] == globalFigs->rotacoes[t].id)
+                glRotatef(globalFigs->rotacoes[t].angle,globalFigs->rotacoes[t].aX, globalFigs->rotacoes[t].aY, globalFigs->rotacoes[t].aZ);
+        }
+
+        for (int t = 0; t < globalFigs->escalas.size(); t++) {
+            if (globalFigs->figuras[i].id[ids] == globalFigs->escalas[t].id)
+                glScalef(globalFigs->escalas[t].x, globalFigs->escalas[t].y, globalFigs->escalas[t].z);
+        }
+    }
+
+}
+
 void renderScene() {
 
     // clear buffers
@@ -358,7 +402,7 @@ void renderScene() {
 
     // set the camera
     glLoadIdentity();
-    gluLookAt(5.0,5.0,5.0,
+    gluLookAt(0.0,1.0,500.0,
               0.0,0.0,0.0,
               0.0f,1.0f,0.0f);
 
@@ -370,9 +414,14 @@ void renderScene() {
     glRotatef(angle, 0, 1, 0);
     glScalef(xScale, yScale, zScale);
 
-    vertice* array = ler(fileString[ite]);
-    ite++;
-    draw(array[0].ponto,array);
+    drawAxis();
+    for(int i = 0; i < globalFigs->figuras.size();i++)
+    {
+        glPushMatrix();
+        applyTransf(i);
+        draw(globalFigs->figuras[i].vertices);
+        glPopMatrix();
+    }
 
     // End of frame
     glutSwapBuffers();
@@ -425,50 +474,30 @@ void reactKeyboard(unsigned char c, int x, int y) {
 
 int main(int argc, char **argv) {
 
-    /*
+    globalFigs = readXml();
+    printFigures(globalFigs);
+
     glutInit(&argc, argv);
-    char** listas = readXml();
-    int len;
-    for(len = 0; listas[len]; len++);
-    char filesToOpen[len][30];
-    for(int i = 0; i < len; i++)
-    {
-        char aux[30] = "./";
-        strcat(aux,listas[i]);
-        strcpy(filesToOpen[i],aux);
-    }
 
-    fileString = (char**) malloc(sizeof(char*) * len);
-    GLint windows[len];
-    for(int i = 0; i < len; i++)
-    {
-        fileString[i] = (char*) malloc(sizeof(char) * 30);
-        strcpy(fileString[i],filesToOpen[i]);
+    // init GLUT and the window
+    glutInitDisplayMode(GLUT_DEPTH | GLUT_DOUBLE | GLUT_RGBA);
+    glutInitWindowPosition(100, 100);
+    glutInitWindowSize(800, 800);
+    glutCreateWindow("CG");
 
+    // Required callback registry
+    glutDisplayFunc(renderScene);
+    glutReshapeFunc(changeSize);
 
-        // init GLUT and the window
-        glutInitDisplayMode(GLUT_DEPTH | GLUT_DOUBLE | GLUT_RGBA);
-        glutInitWindowPosition(100, 100);
-        glutInitWindowSize(800, 800);
-        windows[i] = glutCreateWindow("CG");
+    // put here the registration of the keyboard callbacks
+    glutKeyboardFunc(reactKeyboard);
 
-        // Required callback registry
-        glutDisplayFunc(renderScene);
-        glutReshapeFunc(changeSize);
-
-        // put here the registration of the keyboard callbacks
-        //glutKeyboardFunc(reactKeyboard);
-
-        //  OpenGL settings
-        glEnable(GL_DEPTH_TEST);
-        glEnable(GL_CULL_FACE);
-        // enter GLUT's main cycle
-
-    }
-    ite = 0;
-    glutMainLoop();*/
-
-    readXml();
+    //  OpenGL settings
+    glEnable(GL_DEPTH_TEST);
+    glEnable(GL_CULL_FACE);
+    // enter GLUT's main cycle
+    glutMainLoop();
 
     return 0;
+
 }
