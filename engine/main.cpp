@@ -72,6 +72,7 @@ struct figure
     char* model;
     vector<vertice> vertices;
     vector<int> id;
+    float rgb[3] = {1,0,1};
 };
 
 struct figures
@@ -160,6 +161,7 @@ vector<vertice> ler(const char *ficheiro) {
 void readModel(tinyxml2::XMLElement *titleElement, figures* figs,vector<int> ids)
 {
     const char* file = (char*) malloc(20);
+    const char* rgb = (char*) malloc(20);
     titleElement = titleElement->FirstChildElement();
 
     while(titleElement)
@@ -167,6 +169,17 @@ void readModel(tinyxml2::XMLElement *titleElement, figures* figs,vector<int> ids
         figure f{};
         vector<int> vc;
         titleElement->QueryStringAttribute("file",&file);
+
+        int read;
+        read = titleElement->QueryStringAttribute("diffR",&rgb);
+        if(!read)
+            f.rgb[0] = atof(rgb);
+        read = titleElement->QueryStringAttribute("diffG",&rgb);
+        if(!read)
+            f.rgb[1] = atof(rgb);
+        read = titleElement->QueryStringAttribute("diffB",&rgb);
+        if(!read)
+            f.rgb[2] = atof(rgb);
         f.model = strdup(file);
         for(int i = 0; i < ids.size(); i++)
             vc.push_back(ids[i]);
@@ -350,13 +363,13 @@ void drawAxis() {
 	glEnd();
 }
 
-void draw(vector<vertice> arr){
+void draw(vector<vertice> arr, float* rgb){
     //drawAxis();
     int points = arr[0].ponto;
     glBegin(GL_LINES);
 
     for(int i = 1; i<=points;i+=3){
-        glColor3f(i,0,i);
+        glColor3f(rgb[0]/255,rgb[1]/255,rgb[2]/255);
 
         glVertex3f(arr[i].x,arr[i].y,arr[i].z);
         glVertex3f(arr[i+1].x,arr[i+1].y,arr[i+1].z);
@@ -402,7 +415,7 @@ void renderScene() {
 
     // set the camera
     glLoadIdentity();
-    gluLookAt(0.0,1.0,500.0,
+    gluLookAt(0.0,1.0,300.0,
               0.0,0.0,0.0,
               0.0f,1.0f,0.0f);
 
@@ -414,12 +427,12 @@ void renderScene() {
     glRotatef(angle, 0, 1, 0);
     glScalef(xScale, yScale, zScale);
 
-    drawAxis();
+    //drawAxis();
     for(int i = 0; i < globalFigs->figuras.size();i++)
     {
         glPushMatrix();
         applyTransf(i);
-        draw(globalFigs->figuras[i].vertices);
+        draw(globalFigs->figuras[i].vertices,globalFigs->figuras[i].rgb);
         glPopMatrix();
     }
 
@@ -432,25 +445,25 @@ void reactKeyboard(unsigned char c, int x, int y) {
 
 	switch (c) {
 	case 'a':
-		posx -= 0.1f;
+		posx -= 1.0f;
 		break;
 	case 'd':
-		posx += 0.1f;
+		posx += 1.0f;
 		break;
 	case 'w':
-		posy += 0.1f;
+		posy += 1.0f;
 		break;
 	case 's':
-		posy -= 0.1f;
+		posy -= 1.0f;
 		break;
 	case 32:
 		angle += 1.5;
 		break;
 	case 'z':
-		posz += 0.1f;
+		posz += 1.0f;
 		break;
 	case 'x':
-		posz -= 0.1f;
+		posz -= 1.0f;
 		break;
 	case '+':
 		yScale += 0.1f;
