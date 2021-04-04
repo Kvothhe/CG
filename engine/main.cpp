@@ -32,6 +32,9 @@ float yScale = 1.0f;
 float zScale = 1.0f;
 int contaIds = 0;
 
+float alfa = 0.0f, beta = 0.5f, radius = 100.0f;
+float camX, camY, camZ;
+
 GLenum drawType = GL_FILL;
 
 struct vertice
@@ -110,6 +113,14 @@ void printFigures(figures* figs)
 
         printf("----------------------\n");
     }
+}
+
+
+void spherical2Cartesian() {
+
+    camX = radius * cos(beta) * sin(alfa);
+    camY = radius * sin(beta);
+    camZ = radius * cos(beta) * cos(alfa);
 }
 
 vector<string> split(const string& str, const string& delim)
@@ -386,26 +397,22 @@ void draw(vector<vertice> arr, float* rgb){
 void applyTransf(int i)
 {
     for(int ids = 0 ; ids < globalFigs->figuras[i].id.size() ;ids++) {
-        for (int t = 0; t < globalFigs->translacoes.size(); t++) {
+        for (int t = 0; t < globalFigs->translacoes.size(); t++)
             if (globalFigs->figuras[i].id[ids] == globalFigs->translacoes[t].id)
-            {
-                printf("Translate: %f, %f, %f\n", globalFigs->translacoes[t].x, globalFigs->translacoes[t].y, globalFigs->translacoes[t].z);
                 glTranslatef(globalFigs->translacoes[t].x, globalFigs->translacoes[t].y, globalFigs->translacoes[t].z);
-            }
-        }
-        printf("------------------------\n");
 
-        for (int t = 0; t < globalFigs->rotacoes.size(); t++){
+
+        for (int t = 0; t < globalFigs->rotacoes.size(); t++)
             if (globalFigs->figuras[i].id[ids] == globalFigs->rotacoes[t].id)
-                glRotatef(globalFigs->rotacoes[t].angle,globalFigs->rotacoes[t].aX, globalFigs->rotacoes[t].aY, globalFigs->rotacoes[t].aZ);
-        }
+                glRotatef(globalFigs->rotacoes[t].angle, globalFigs->rotacoes[t].aX, globalFigs->rotacoes[t].aY,
+                          globalFigs->rotacoes[t].aZ);
 
-        for (int t = 0; t < globalFigs->escalas.size(); t++) {
+
+        for (int t = 0; t < globalFigs->escalas.size(); t++)
             if (globalFigs->figuras[i].id[ids] == globalFigs->escalas[t].id)
                 glScalef(globalFigs->escalas[t].x, globalFigs->escalas[t].y, globalFigs->escalas[t].z);
-        }
-    }
 
+    }
 }
 
 void renderScene() {
@@ -415,7 +422,7 @@ void renderScene() {
 
     // set the camera
     glLoadIdentity();
-    gluLookAt(0.0,1.0,300.0,
+    gluLookAt(camX,camY,camZ,
               0.0,0.0,0.0,
               0.0f,1.0f,0.0f);
 
@@ -443,52 +450,42 @@ void renderScene() {
 // write function to process keyboard events
 void reactKeyboard(unsigned char c, int x, int y) {
 
-	switch (c) {
-	case 'a':
-		posx -= 1.0f;
-		break;
-	case 'd':
-		posx += 1.0f;
-		break;
-	case 'w':
-		posy += 1.0f;
-		break;
-	case 's':
-		posy -= 1.0f;
-		break;
-	case 32:
-		angle += 1.5;
-		break;
-	case 'z':
-		posz += 1.0f;
-		break;
-	case 'x':
-		posz -= 1.0f;
-		break;
-	case '+':
-		yScale += 0.1f;
-		break;
-	case '-':
-		yScale -= 0.1f;
-		break;
-	case '1':
-		drawType = GL_LINE;
-		break;
-	case '2':
-		drawType = GL_FILL;
-		break;
-	case '3':
-		drawType = GL_POINT;
-	}
+    switch (c) {
 
-	glutPostRedisplay();
+        case 'd':
+            alfa -= 0.1; break;
+
+        case 'a':
+            alfa += 0.1; break;
+
+        case 'w':
+            beta += 0.1f;
+            if (beta > 1.5f)
+                beta = 1.5f;
+            break;
+
+        case 's':
+            beta -= 0.1f;
+            if (beta < -1.5f)
+                beta = -1.5f;
+            break;
+
+        case 'z': radius -= 1.0f;
+            if (radius < 1.0f)
+                radius = 1.0f;
+            break;
+
+        case 'x': radius += 1.0f; break;
+    }
+    spherical2Cartesian();
+    glutPostRedisplay();
 }
 
 
 int main(int argc, char **argv) {
 
     globalFigs = readXml();
-    printFigures(globalFigs);
+    //printFigures(globalFigs);
 
     glutInit(&argc, argv);
 
@@ -508,6 +505,7 @@ int main(int argc, char **argv) {
     //  OpenGL settings
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);
+    spherical2Cartesian();
     // enter GLUT's main cycle
     glutMainLoop();
 
