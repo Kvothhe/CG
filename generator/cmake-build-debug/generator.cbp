@@ -82,6 +82,12 @@
 				</MakeCommands>
 			</Target>
 		</Build>
+		<Unit filename="/home/kvothe/Desktop/cg/generator/bezier.cpp">
+			<Option target="generator"/>
+		</Unit>
+		<Unit filename="/home/kvothe/Desktop/cg/generator/bezier.h">
+			<Option target="generator"/>
+		</Unit>
 		<Unit filename="/home/kvothe/Desktop/cg/generator/generator.cpp">
 			<Option target="generator"/>
 		</Unit>

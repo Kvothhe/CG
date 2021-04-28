@@ -6,19 +6,23 @@
 
 #IncludeRegexTransform: 
 
-/home/kvothe/Desktop/cg/generator/generator.cpp
-string
+/home/kvothe/Desktop/cg/generator/bezier.cpp
+cstring
 -
+bezier.h
+/home/kvothe/Desktop/cg/generator/bezier.h
+
+/home/kvothe/Desktop/cg/generator/bezier.h
 generator.h
 /home/kvothe/Desktop/cg/generator/generator.h
-iostream
+cstdio
 -
-fstream
+cstdlib
 -
-math.h
--
-cstring
+vector
 -
 
 /home/kvothe/Desktop/cg/generator/generator.h
+string
+-
 

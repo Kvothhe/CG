@@ -4,6 +4,7 @@ set(CMAKE_DEPENDS_LANGUAGES
   )
 # The set of files for implicit dependencies of each language:
 set(CMAKE_DEPENDS_CHECK_CXX
+  "/home/kvothe/Desktop/cg/generator/bezier.cpp" "/home/kvothe/Desktop/cg/generator/cmake-build-debug/CMakeFiles/generator.dir/bezier.cpp.o"
   "/home/kvothe/Desktop/cg/generator/generator.cpp" "/home/kvothe/Desktop/cg/generator/cmake-build-debug/CMakeFiles/generator.dir/generator.cpp.o"
   )
 set(CMAKE_CXX_COMPILER_ID "GNU")

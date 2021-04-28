@@ -8,6 +8,7 @@ using namespace std;
 #define _USE_MATH_DEFINES
 #include <math.h>
 #include <cstring>
+#include "bezier.h"
 
 void write(int counter, struct vertice arr[], std::string path) {
 	ofstream myfile;
@@ -238,15 +239,6 @@ void cone(float r, float h, int slices, int stacks, std::string path) {
 
 int main(int argc, char** argv) {
 
-
-
-
-	//std::string gen = argv[0];
-
-	//plane(3, "sphere.3d");
-	//box(2, 3, 4,"C:\\Users\\anton\\OneDrive\\Ambiente de Trabalho\\CG\\teste.txt");
-	//sphere(2, 10, 10, "C:\\Users\\anton\\OneDrive\\Ambiente de Trabalho\\CG\\teste.txt");
-
     if(argc == 4 && strcmp(argv[1],"plane") == 0)
     {
         char* destFile =(char*) malloc(sizeof (char) * 20);
@@ -279,8 +271,11 @@ int main(int argc, char** argv) {
 	    cone(atof(argv[2]),atof(argv[3]), atoi(argv[4]),atoi(argv[5]), destFile);
 	}
 
-
-
+    if(argc == 4 && strcmp(argv[1],"bezier") == 0)
+    {
+        bezierPatch bp =  parseBezier(argv[2]);
+        generateBezier(bp,atoi(argv[3]));
+    }
 }
 
 	

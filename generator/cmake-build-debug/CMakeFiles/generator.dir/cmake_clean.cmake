@@ -1,4 +1,5 @@
 file(REMOVE_RECURSE
+  "CMakeFiles/generator.dir/bezier.cpp.o"
   "CMakeFiles/generator.dir/generator.cpp.o"
   "generator"
   "generator.pdb"
