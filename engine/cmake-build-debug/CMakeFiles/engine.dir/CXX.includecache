@@ -7,7 +7,11 @@
 #IncludeRegexTransform: 
 
 /home/kvothe/Desktop/cg/engine/main.cpp
+GLUT/glew.h
+-
 GLUT/glut.h
+-
+GL/glew.h
 -
 GL/glut.h
 -

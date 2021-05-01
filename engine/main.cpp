@@ -1,6 +1,8 @@
 #ifdef __APPLE__
+#include <GLUT/glew.h>
 #include <GLUT/glut.h>
 #else
+#include <GL/glew.h>
 #include <GL/glut.h>
 #endif
 
@@ -13,7 +15,6 @@
 #include <list>
 
 using namespace std;
-
 
 #define _USE_MATH_DEFINES
 #include <math.h>
@@ -78,15 +79,68 @@ struct figure
     float rgb[3] = {1,0,1};
 };
 
+struct vbo
+{
+    GLuint vertice;
+    GLuint verticeCount;
+};
+
 struct figures
 {
     vector<figure> figuras;
     vector<scale> escalas;
     vector<rotate> rotacoes;
     vector<translate> translacoes;
+    vector<vbo> vbos;
+    vector<char*> vbosName;
 };
-
 figures* globalFigs;
+
+int containsVBO(vector<char*> vbos,char* name)
+{
+    for(int i = 0; i < vbos.size(); i++)
+        if(strcmp(name, vbos[i]) == 0)
+            return i;
+        return -1;
+}
+
+void prepareData()
+{
+    int contador = 1;
+    for(int i = 0; i < globalFigs->figuras.size(); i++)
+    {
+        vector<float> p;
+        printf("Inicio!\n");
+        int j = 1;
+        printf("figs to points, v: %ld\n", globalFigs->figuras[i].vertices.size());
+        if(containsVBO(globalFigs->vbosName, globalFigs->figuras[i].model) == -1)
+        {
+            for(; j < globalFigs->figuras[i].vertices.size(); j++)
+            {
+                float xf = globalFigs->figuras[i].vertices[j].x;
+                float yf = globalFigs->figuras[i].vertices[j].y;
+                float zf = globalFigs->figuras[i].vertices[j].z;
+                //printf("%.3f %.3f %.3f\n", xf,yf,zf);
+                p.push_back(xf);
+                p.push_back(yf);
+                p.push_back(zf);
+            }
+
+            printf("globalFigs->figuras[i].model: %s\n",globalFigs->figuras[i].model);
+            globalFigs->vbosName.push_back(globalFigs->figuras[i].model);
+            vbo aux;
+            aux.vertice = contador;
+            aux.verticeCount = j-1;
+            globalFigs->vbos.push_back(aux);
+            printf("Img: %d\n", i);
+            glGenBuffers(1, &(globalFigs->vbos[contador-1].vertice));
+            glBindBuffer(GL_ARRAY_BUFFER,globalFigs->vbos[contador-1].vertice);
+            glBufferData(GL_ARRAY_BUFFER,sizeof(float) * p.size(), &p[0],GL_STATIC_DRAW);
+            printf("contador: %d\n", contador);
+            contador++;
+        }
+    }
+}
 
 void printTransf(figures* figs, int id)
 {
@@ -394,6 +448,15 @@ void draw(vector<vertice> arr, float* rgb){
     glEnd();
 }
 
+void drawVBOs(int i)
+{
+    //drawAxis();
+    glBindBuffer(GL_ARRAY_BUFFER,globalFigs->vbos[i].vertice);
+    glVertexPointer(3,GL_FLOAT,0,0);
+    printf("vc: %d\n", globalFigs->vbos[i].verticeCount);
+    glDrawArrays(GL_TRIANGLES,0,globalFigs->vbos[i].verticeCount);
+}
+
 void applyTransf(int i)
 {
     for(int ids = 0 ; ids < globalFigs->figuras[i].id.size() ;ids++) {
@@ -416,9 +479,9 @@ void applyTransf(int i)
 }
 
 void renderScene() {
-
     // clear buffers
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    printf("Teste\n");
 
     // set the camera
     glLoadIdentity();
@@ -434,12 +497,15 @@ void renderScene() {
     glRotatef(angle, 0, 1, 0);
     glScalef(xScale, yScale, zScale);
 
-    //drawAxis();
+
     for(int i = 0; i < globalFigs->figuras.size();i++)
     {
         glPushMatrix();
         applyTransf(i);
-        draw(globalFigs->figuras[i].vertices,globalFigs->figuras[i].rgb);
+        //draw(globalFigs->figuras[i].vertices,globalFigs->figuras[i].rgb);
+        int a = containsVBO(globalFigs->vbosName, globalFigs->figuras[i].model);
+        printf("a: %d\n", a);
+        drawVBOs(a);
         glPopMatrix();
     }
 
@@ -487,13 +553,18 @@ int main(int argc, char **argv) {
     globalFigs = readXml();
     //printFigures(globalFigs);
 
-    glutInit(&argc, argv);
 
     // init GLUT and the window
+    glutInit(&argc, argv);
     glutInitDisplayMode(GLUT_DEPTH | GLUT_DOUBLE | GLUT_RGBA);
     glutInitWindowPosition(100, 100);
     glutInitWindowSize(800, 800);
     glutCreateWindow("CG");
+
+    #ifndef __APPLE__
+    glewInit();
+    #endif
+
 
     // Required callback registry
     glutDisplayFunc(renderScene);
@@ -505,7 +576,12 @@ int main(int argc, char **argv) {
     //  OpenGL settings
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);
+    glEnable(GL_VERTEX_ARRAY);
+    glPolygonMode(GL_FRONT, GL_LINE);
     spherical2Cartesian();
+
+    prepareData();
+    printf("okk\n");
     // enter GLUT's main cycle
     glutMainLoop();
 

@@ -1,3 +1,0 @@
-C:/Users/anton/OneDrive/Ambiente de Trabalho/CG/tp1/code/build/CMakeFiles/class2.dir
-C:/Users/anton/OneDrive/Ambiente de Trabalho/CG/tp1/code/build/CMakeFiles/ALL_BUILD.dir
-C:/Users/anton/OneDrive/Ambiente de Trabalho/CG/tp1/code/build/CMakeFiles/ZERO_CHECK.dir

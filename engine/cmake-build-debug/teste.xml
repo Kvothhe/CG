@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <scene>
     <group>
-        <translate X="-100" Y="1" Z="0"/>
+        <translate X="-10" Y="1" Z="0"/>
         <scale X="5.5" Y="5.5" Z="5.5"/>
         <!-- SUN -->
         <models>
@@ -85,6 +85,15 @@
             <scale X="0.3" Y="0.3" Z="0.3"/>
             <models>
                 <model file="sphere.3d" diffR="97" diffG="145" diffB="221"/>
+            </models>
+        </group>
+
+        <!-- COMETA -->
+        <group>
+            <translate X="1" Y="0" Z="0"/>
+            <scale X="0.3" Y="0.3" Z="0.3"/>
+            <models>
+                <model file="bezier.3d" diffR="97" diffG="145" diffB="221"/>
             </models>
         </group>
     </group>
