@@ -75,15 +75,13 @@ struct figure
 {
     char* model;
     vector<vertice> vertices;
-    vector<GLuint> indices;
+    vector<unsigned int> indices;
     vector<int> id;
     float rgb[3] = {1,0,1};
 };
 
 struct vbo
 {
-    bool temIndices;
-    vector<float> vertices;
     unsigned int indexCount;
     GLuint indices;
     GLuint vertice;
@@ -131,32 +129,18 @@ void prepareData()
                 p.push_back(zf);
             }
 
-            if(globalFigs->figuras[i].indices.empty())
-            {
-                globalFigs->vbosName.push_back(globalFigs->figuras[i].model);
-                vbo aux;
-                aux.temIndices = false;
-                aux.vertice = contador;
-                aux.verticeCount = j-1;
-                globalFigs->vbos.push_back(aux);
+            globalFigs->vbosName.push_back(globalFigs->figuras[i].model);
+            vbo aux;
+            aux.indices = contador;
+            globalFigs->vbos.push_back(aux);
+            glGenBuffers(1,&(globalFigs->vbos[contador-1].vertice));
+            glBindBuffer(GL_ARRAY_BUFFER,globalFigs->vbos[contador-1].vertice);
+            glBufferData(GL_ARRAY_BUFFER,sizeof(float)*p.size(),p.data(),GL_STATIC_DRAW);
 
-                glGenBuffers(1, &(globalFigs->vbos[contador-1].vertice));
-                glBindBuffer(GL_ARRAY_BUFFER,globalFigs->vbos[contador-1].vertice);
-                glBufferData(GL_ARRAY_BUFFER,sizeof(float) * p.size(), &p[0],GL_STATIC_DRAW);
-            }
-            else
-            {
-                globalFigs->vbosName.push_back(globalFigs->figuras[i].model);
-                vbo aux;
-                aux.temIndices = true;
-                aux.indices = contador;
-                aux.indexCount = globalFigs->figuras[i].indices.size();
-                aux.vertices = p;
-                globalFigs->vbos.push_back(aux);
-                glGenBuffers(1,&globalFigs->vbos[contador-1].indices);
-                glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,globalFigs->vbos[contador-1].indices);
-                glBufferData(GL_ELEMENT_ARRAY_BUFFER,sizeof(unsigned int)* globalFigs->figuras[i].indices.size(),globalFigs->figuras[i].indices.data(),GL_STATIC_DRAW);
-            }
+            glGenBuffers(1,&(globalFigs->vbos[contador-1].indices));
+            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,globalFigs->vbos[contador-1].indices);
+            glBufferData(GL_ELEMENT_ARRAY_BUFFER,sizeof(unsigned int)* globalFigs->figuras[i].indices.size() ,globalFigs->figuras[i].indices.data(),GL_STATIC_DRAW);
+            globalFigs->vbos[contador-1].indexCount = globalFigs->figuras[i].indices.size();
             contador++;
         }
     }
@@ -230,7 +214,7 @@ vector<vertice> ler(const char *ficheiro, FILE* fp) {
     std::string token;
     vector<string> tokens;
     int cont = 0;
-    while ((getline(&line, &len, fp)) != -1 && cont < point-1) {
+    while (cont < point && (getline(&line, &len, fp)) != -1) {
         std::string lineS(line);
         tokens = split(lineS, " ");
         vertice vAux{0,stof(tokens[0]),stof(tokens[1]),stof(tokens[2])};
@@ -283,8 +267,18 @@ void readModel(tinyxml2::XMLElement *titleElement, figures* figs,vector<int> ids
         if(getline(&line, &len, fp) != -1)
         {
             int nV = atoi(line);
+            getline(&line, &len, fp);
+            //printf("nV: %d\n", nV);
             for(int i = 0; i < nV+1; getline(&line, &len, fp),i++)
+            {
                 indices.push_back(atoi(line));
+                //printf("indices[%d]: %d\n", i,indices[i]);
+            }
+        }
+        else
+        {
+            for(int i = 0; i < f.vertices.size(); i++)
+                indices.push_back(i);
         }
         fclose(fp);
         f.indices = indices;
@@ -483,23 +477,13 @@ void draw(vector<vertice> arr, float* rgb){
 
 void drawVBOs(int i)
 {
-    if(globalFigs->vbos[i].temIndices)
-    {
-        printf("i: %d\n",i);
-        glBindBuffer(GL_ARRAY_BUFFER,globalFigs->vbos[i].vertice);
-        glVertexPointer(3,GL_FLOAT,0,0);
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,globalFigs->vbos[i].indices);
-        glDrawElements(GL_TRIANGLES,globalFigs->vbos[i].indexCount,GL_UNSIGNED_INT,0);
+    int iC =  globalFigs->vbos[i].indexCount;
 
-    }
-    else
-    {
-        //drawAxis();
-        glBindBuffer(GL_ARRAY_BUFFER,globalFigs->vbos[i].vertice);
-        glVertexPointer(3,GL_FLOAT,0,0);
-        //printf("vc: %d\n", globalFigs->vbos[i].verticeCount);
-        glDrawArrays(GL_TRIANGLES,0,globalFigs->vbos[i].verticeCount);
-    }
+    glBindBuffer(GL_ARRAY_BUFFER,globalFigs->vbos[i].vertice);
+    glVertexPointer(3,GL_FLOAT,0,0);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,globalFigs->vbos[i].indices);
+    glDrawElements(GL_TRIANGLES,globalFigs->vbos[i].indexCount,GL_UNSIGNED_INT,0);
+
 }
 
 void applyTransf(int i)
