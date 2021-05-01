@@ -141,40 +141,61 @@ vector<vertice> createPatch(bezierPatch bp, vector<int> indices, int tesselation
     return res;
 }
 
-void ordenaPatch(vector<vertice> patch, int tesselation, FILE* file)
+vector<int> ordenaPatch(vector<vertice> patch, int tesselation, vector<int> indices)
 {
     int t = tesselation + 1;
     for(int j = 0; j < tesselation;j++)
     {
         for(int i = 0; i < tesselation;i++)
         {
+            indices.push_back(i+(j*t));
+            indices.push_back(i+t+(j*t));
+            indices.push_back(i+1+(j*t));
+            indices.push_back(i+t+(j*t));
+            indices.push_back(i+t+1+(j*t));
+            indices.push_back(i+1+(j*t));
             //printf("Is: %d %d %d\n", i+(j*t), i+t+(j*t), i+1+(j*t));
-            fprintf(file,"%f %f %f\n", patch[i+(j*t)].x,patch[i+(j*t)].y,patch[i+(j*t)].z);
+
+            /*fprintf(file,"%f %f %f\n", patch[i+(j*t)].x,patch[i+(j*t)].y,patch[i+(j*t)].z);
             fprintf(file,"%f %f %f\n", patch[i+t+(j*t)].x,patch[i+t+(j*t)].y,patch[i+t+(j*t)].z);
-            fprintf(file,"%f %f %f\n", patch[i+1+(j*t)].x,patch[i+1+(j*t)].y,patch[i+1+(j*t)].z);
+            fprintf(file,"%f %f %f\n", patch[i+1+(j*t)].x,patch[i+1+(j*t)].y,patch[i+1+(j*t)].z);*/
 
             //printf("Is: %d %d %d\n", i+t+(j*t), i+t+1+(j*t), i+1+(j*t));
-            fprintf(file,"%f %f %f\n", patch[i+t+(j*t)].x,patch[i+t+(j*t)].y,patch[i+t+(j*t)].z);
+
+            /*fprintf(file,"%f %f %f\n", patch[i+t+(j*t)].x,patch[i+t+(j*t)].y,patch[i+t+(j*t)].z);
             fprintf(file,"%f %f %f\n", patch[i+t+1+(j*t)].x,patch[i+t+1+(j*t)].y,patch[i+t+1+(j*t)].z);
-            fprintf(file,"%f %f %f\n", patch[i+1+(j*t)].x,patch[i+1+(j*t)].y,patch[i+1+(j*t)].z);
+            fprintf(file,"%f %f %f\n", patch[i+1+(j*t)].x,patch[i+1+(j*t)].y,patch[i+1+(j*t)].z);*/
 
         }
     }
+
+    return indices;
 }
 
 void generateBezier(bezierPatch bp, int tesselation)
 {
     FILE *fp = fopen("bezier.3d", "w");
-
+    vector<int> indices;
     int points_to_write = 6*tesselation*tesselation*bp.indicesForPatch.size();
-    fprintf(fp,"%d\n", points_to_write);
+    fprintf(fp,"%ld\n", bp.indicesForPatch.size()*(tesselation+1)*(tesselation+1));
     for(int i = 0; i < bp.indicesForPatch.size(); i ++)
     {
         //printf("Patch: %d\n", i);
         vector<vertice> patch = createPatch(bp,bp.indicesForPatch[i], tesselation);
-        ordenaPatch(patch,tesselation,fp);
+        for(int j = 0; j < patch.size(); j++)
+            fprintf(fp, "%f %f %f\n", patch[j].x,patch[j].y,patch[j].z);
+        indices = ordenaPatch(patch,tesselation,indices);
     }
+    int number_of_points_by_patch = (tesselation+1)*(tesselation+1);
+    int aux = 0;
+    fprintf(fp,"%d\n", points_to_write);
+    for(int i = 0; i < indices.size(); i++)
+    {
+        if(i >=(tesselation*tesselation*2*3) && i % (tesselation*tesselation*2*3) == 0)
+            aux += (tesselation+1) * (tesselation+1);
 
+        fprintf(fp,"%d\n", indices[i]+aux);
+    }
     fclose(fp);
 }
 

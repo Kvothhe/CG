@@ -75,12 +75,17 @@ struct figure
 {
     char* model;
     vector<vertice> vertices;
+    vector<GLuint> indices;
     vector<int> id;
     float rgb[3] = {1,0,1};
 };
 
 struct vbo
 {
+    bool temIndices;
+    vector<float> vertices;
+    unsigned int indexCount;
+    GLuint indices;
     GLuint vertice;
     GLuint verticeCount;
 };
@@ -110,9 +115,9 @@ void prepareData()
     for(int i = 0; i < globalFigs->figuras.size(); i++)
     {
         vector<float> p;
-        printf("Inicio!\n");
+        //printf("Inicio!\n");
         int j = 1;
-        printf("figs to points, v: %ld\n", globalFigs->figuras[i].vertices.size());
+        //printf("figs to points, v: %ld\n", globalFigs->figuras[i].vertices.size());
         if(containsVBO(globalFigs->vbosName, globalFigs->figuras[i].model) == -1)
         {
             for(; j < globalFigs->figuras[i].vertices.size(); j++)
@@ -126,17 +131,32 @@ void prepareData()
                 p.push_back(zf);
             }
 
-            printf("globalFigs->figuras[i].model: %s\n",globalFigs->figuras[i].model);
-            globalFigs->vbosName.push_back(globalFigs->figuras[i].model);
-            vbo aux;
-            aux.vertice = contador;
-            aux.verticeCount = j-1;
-            globalFigs->vbos.push_back(aux);
-            printf("Img: %d\n", i);
-            glGenBuffers(1, &(globalFigs->vbos[contador-1].vertice));
-            glBindBuffer(GL_ARRAY_BUFFER,globalFigs->vbos[contador-1].vertice);
-            glBufferData(GL_ARRAY_BUFFER,sizeof(float) * p.size(), &p[0],GL_STATIC_DRAW);
-            printf("contador: %d\n", contador);
+            if(globalFigs->figuras[i].indices.empty())
+            {
+                globalFigs->vbosName.push_back(globalFigs->figuras[i].model);
+                vbo aux;
+                aux.temIndices = false;
+                aux.vertice = contador;
+                aux.verticeCount = j-1;
+                globalFigs->vbos.push_back(aux);
+
+                glGenBuffers(1, &(globalFigs->vbos[contador-1].vertice));
+                glBindBuffer(GL_ARRAY_BUFFER,globalFigs->vbos[contador-1].vertice);
+                glBufferData(GL_ARRAY_BUFFER,sizeof(float) * p.size(), &p[0],GL_STATIC_DRAW);
+            }
+            else
+            {
+                globalFigs->vbosName.push_back(globalFigs->figuras[i].model);
+                vbo aux;
+                aux.temIndices = true;
+                aux.indices = contador;
+                aux.indexCount = globalFigs->figuras[i].indices.size();
+                aux.vertices = p;
+                globalFigs->vbos.push_back(aux);
+                glGenBuffers(1,&globalFigs->vbos[contador-1].indices);
+                glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,globalFigs->vbos[contador-1].indices);
+                glBufferData(GL_ELEMENT_ARRAY_BUFFER,sizeof(unsigned int)* globalFigs->figuras[i].indices.size(),globalFigs->figuras[i].indices.data(),GL_STATIC_DRAW);
+            }
             contador++;
         }
     }
@@ -193,9 +213,9 @@ vector<string> split(const string& str, const string& delim)
     return tokens;
 }
 
-vector<vertice> ler(const char *ficheiro) {
+vector<vertice> ler(const char *ficheiro, FILE* fp) {
 
-    FILE *fp = fopen(ficheiro, "r");
+    //FILE *fp = fopen(ficheiro, "r");
     if (fp == NULL)
         exit(EXIT_FAILURE);
 
@@ -209,13 +229,15 @@ vector<vertice> ler(const char *ficheiro) {
     std::string delimiter = " ";
     std::string token;
     vector<string> tokens;
-    while ((getline(&line, &len, fp)) != -1) {
+    int cont = 0;
+    while ((getline(&line, &len, fp)) != -1 && cont < point-1) {
         std::string lineS(line);
         tokens = split(lineS, " ");
         vertice vAux{0,stof(tokens[0]),stof(tokens[1]),stof(tokens[2])};
         v.push_back(vAux);
+        cont++;
     }
-    fclose(fp);
+    //fclose(fp);
     if (line)
         free(line);
 
@@ -253,8 +275,19 @@ void readModel(tinyxml2::XMLElement *titleElement, figures* figs,vector<int> ids
         char* auxDest = (char*) malloc(sizeof(char)*20);
         strcpy(auxDest,"./");
         strcat(auxDest,f.model);
-        f.vertices = ler(auxDest);
-
+        FILE* fp = fopen(auxDest, "r");
+        f.vertices = ler(auxDest, fp);
+        char *line = NULL;
+        size_t len = 0;
+        vector<GLuint> indices;
+        if(getline(&line, &len, fp) != -1)
+        {
+            int nV = atoi(line);
+            for(int i = 0; i < nV+1; getline(&line, &len, fp),i++)
+                indices.push_back(atoi(line));
+        }
+        fclose(fp);
+        f.indices = indices;
         figs->figuras.push_back(f);
         titleElement = titleElement->NextSiblingElement();
     }
@@ -450,11 +483,23 @@ void draw(vector<vertice> arr, float* rgb){
 
 void drawVBOs(int i)
 {
-    //drawAxis();
-    glBindBuffer(GL_ARRAY_BUFFER,globalFigs->vbos[i].vertice);
-    glVertexPointer(3,GL_FLOAT,0,0);
-    printf("vc: %d\n", globalFigs->vbos[i].verticeCount);
-    glDrawArrays(GL_TRIANGLES,0,globalFigs->vbos[i].verticeCount);
+    if(globalFigs->vbos[i].temIndices)
+    {
+        printf("i: %d\n",i);
+        glBindBuffer(GL_ARRAY_BUFFER,globalFigs->vbos[i].vertice);
+        glVertexPointer(3,GL_FLOAT,0,0);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,globalFigs->vbos[i].indices);
+        glDrawElements(GL_TRIANGLES,globalFigs->vbos[i].indexCount,GL_UNSIGNED_INT,0);
+
+    }
+    else
+    {
+        //drawAxis();
+        glBindBuffer(GL_ARRAY_BUFFER,globalFigs->vbos[i].vertice);
+        glVertexPointer(3,GL_FLOAT,0,0);
+        //printf("vc: %d\n", globalFigs->vbos[i].verticeCount);
+        glDrawArrays(GL_TRIANGLES,0,globalFigs->vbos[i].verticeCount);
+    }
 }
 
 void applyTransf(int i)
@@ -481,7 +526,6 @@ void applyTransf(int i)
 void renderScene() {
     // clear buffers
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    printf("Teste\n");
 
     // set the camera
     glLoadIdentity();
@@ -504,7 +548,7 @@ void renderScene() {
         applyTransf(i);
         //draw(globalFigs->figuras[i].vertices,globalFigs->figuras[i].rgb);
         int a = containsVBO(globalFigs->vbosName, globalFigs->figuras[i].model);
-        printf("a: %d\n", a);
+        //printf("a: %d\n", a);
         drawVBOs(a);
         glPopMatrix();
     }
@@ -581,7 +625,6 @@ int main(int argc, char **argv) {
     spherical2Cartesian();
 
     prepareData();
-    printf("okk\n");
     // enter GLUT's main cycle
     glutMainLoop();
 
