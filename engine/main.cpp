@@ -531,12 +531,13 @@ void draw(vector<vertice> arr, float* rgb){
     glEnd();
 }
 
-void drawVBOs(int i)
+void drawVBOs(int i,float* rgb)
 {
     int iC =  globalFigs->vbos[i].indexCount;
 
     glBindBuffer(GL_ARRAY_BUFFER,globalFigs->vbos[i].vertice);
     glVertexPointer(3,GL_FLOAT,0,0);
+    glColor3f(rgb[0]/255,rgb[1]/255,rgb[2]/255);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,globalFigs->vbos[i].indices);
     glDrawElements(GL_TRIANGLES,globalFigs->vbos[i].indexCount,GL_UNSIGNED_INT,0);
 
@@ -564,13 +565,8 @@ void applyDynamicTranslate(translate t)
         p[i][2] = t.vZ[i];
     }
 
-    /*for(int i = 0; i < 4; i++) {
-        printf("PT: %f %f %f\n", p[i][0], p[i][1], p[i][2]);
-    }*/
 
-    printf("Partialtime: %.3f\n", partialTime);
     getGlobalCatmullRomPoint(p, partialTime, (float *) pos, (float *) deriv);
-    printf("%f %f %f\n", pos[0],pos[1],pos[2]);
     glTranslatef(pos[0],pos[1],pos[2]);
 
     normalize((float *)deriv);
@@ -648,7 +644,7 @@ void renderScene() {
         //draw(globalFigs->figuras[i].vertices,globalFigs->figuras[i].rgb);
         int a = containsVBO(globalFigs->vbosName, globalFigs->figuras[i].model);
         //printf("a: %d\n", a);
-        drawVBOs(a);
+        drawVBOs(a,globalFigs->figuras[i].rgb);
         glPopMatrix();
     }
 

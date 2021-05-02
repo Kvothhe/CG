@@ -63,10 +63,11 @@ void getCatmullRomPoint(float t, float * p0, float * p1, float * p2, float * p3,
         p[i][2] = p2[i];
         p[i][3] = p3[i];
     }
-    for(int i = 0; i < 3; i++) {
+
+    /*for(int i = 0; i < 3; i++) {
         printf("p0 = %f,p1 = %f,p2 = %f,p3 = %f, \n", p0[i],p1[i],p2[i],p3[i]);
 
-    }
+    }*/
 
     // compute A = M * P
     multMatrixVector((float *)m,p[0],a[0]);
@@ -105,7 +106,7 @@ void getGlobalCatmullRomPoint(float** p,float gt, float *pos, float *deriv)
     indices[2] = (indices[1]+1)%numberOfPoints;
     indices[3] = (indices[2]+1)%numberOfPoints;
 
-    printf("gt: %f\nProximo t: %.2f\n",gt, t);
+    //printf("gt: %f\nProximo t: %.2f\n",gt, t);
     getCatmullRomPoint(t, p[indices[0]], p[indices[1]], p[indices[2]], p[indices[3]], pos, deriv);
 }
 
