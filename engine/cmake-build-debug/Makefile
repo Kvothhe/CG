@@ -142,6 +142,33 @@ engine/fast:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/engine.dir/build.make CMakeFiles/engine.dir/build
 .PHONY : engine/fast
 
+catmull.o: catmull.cpp.o
+
+.PHONY : catmull.o
+
+# target to build an object file
+catmull.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/engine.dir/build.make CMakeFiles/engine.dir/catmull.cpp.o
+.PHONY : catmull.cpp.o
+
+catmull.i: catmull.cpp.i
+
+.PHONY : catmull.i
+
+# target to preprocess a source file
+catmull.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/engine.dir/build.make CMakeFiles/engine.dir/catmull.cpp.i
+.PHONY : catmull.cpp.i
+
+catmull.s: catmull.cpp.s
+
+.PHONY : catmull.s
+
+# target to generate assembly for a file
+catmull.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/engine.dir/build.make CMakeFiles/engine.dir/catmull.cpp.s
+.PHONY : catmull.cpp.s
+
 main.o: main.cpp.o
 
 .PHONY : main.o
@@ -205,6 +232,9 @@ help:
 	@echo "... edit_cache"
 	@echo "... rebuild_cache"
 	@echo "... engine"
+	@echo "... catmull.o"
+	@echo "... catmull.i"
+	@echo "... catmull.s"
 	@echo "... main.o"
 	@echo "... main.i"
 	@echo "... main.s"

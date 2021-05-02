@@ -13,6 +13,7 @@
 #include <vector>
 #include <fstream>
 #include <list>
+#include "catmull.h"
 
 using namespace std;
 
@@ -49,14 +50,20 @@ struct vertice
 struct translate
 {
     int id;
+    bool isStatic = true;
     float x;
     float y;
     float z;
+    int time;
+    vector<float> vX;
+    vector<float> vY;
+    vector<float> vZ;
 };
 
 struct rotate
 {
     int id;
+    int time;
     float angle;
     float aX;
     float aY;
@@ -173,6 +180,19 @@ void printFigures(figures* figs)
     }
 }
 
+void printTransNotStatic()
+{
+    for(int i = 0; i < globalFigs->translacoes.size(); i++)
+    {
+        if(!globalFigs->translacoes[i].isStatic)
+        {
+            printf("I: %d\n", i);
+            printf("Time: %d\n", globalFigs->translacoes[i].time);
+            for(int j = 0;j < globalFigs->translacoes[i].vX.size(); j++)
+                printf("P: %f %f %f\n",globalFigs->translacoes[i].vX[j], globalFigs->translacoes[i].vY[j], globalFigs->translacoes[i].vZ[j]);
+        }
+    }
+}
 
 void spherical2Cartesian() {
 
@@ -296,24 +316,56 @@ void readGroup(tinyxml2::XMLElement *titleElement, figures* figs, vector<int> id
     titleElement = titleElement->FirstChildElement();
     if(strcmp(titleElement->Value(),"translate") == 0)
     {
-        translate t{contaIds};
+        tinyxml2::XMLElement *auxTElement = titleElement;
+        auxTElement = auxTElement->FirstChildElement();
+        if(auxTElement && strcmp(auxTElement->Value(),"point") == 0)
+        {
+            translate t{contaIds};
+            t.isStatic = false;
+            const char* str = (char*) malloc(sizeof(20));
+            int time;
+            titleElement->QueryStringAttribute("time", &str);
+            if(str)
+                t.time = atoi(str),str = nullptr;
 
-        const char* str = (char*) malloc(sizeof(20));
-        titleElement->QueryStringAttribute("X",&str);
-        if(str)
-            t.x = atof(str),str = nullptr;
+            while(auxTElement)
+            {
+                auxTElement->QueryStringAttribute("X", &str);
+                if(str)
+                    t.vX.push_back(atof(str)),str = nullptr;
+                auxTElement->QueryStringAttribute("Y", &str);
+                if(str)
+                    t.vY.push_back(atof(str)),str = nullptr;
+                auxTElement->QueryStringAttribute("Z", &str);
+                if(str)
+                    t.vZ.push_back(atof(str)),str = nullptr;
+                auxTElement = auxTElement->NextSiblingElement();
+            }
 
-        titleElement->QueryStringAttribute("Y",&str);
-        if(str)
-            t.y = atof(str),str = nullptr;
+            figs->translacoes.push_back(t);
+            titleElement = titleElement->NextSiblingElement();
+        }
+        else
+        {
+            translate t{contaIds};
+
+            const char* str = (char*) malloc(sizeof(20));
+            titleElement->QueryStringAttribute("X",&str);
+            if(str)
+                t.x = atof(str),str = nullptr;
+
+            titleElement->QueryStringAttribute("Y",&str);
+            if(str)
+                t.y = atof(str),str = nullptr;
 
 
-        titleElement->QueryStringAttribute("Z",&str);
-        if(str)
-            t.z = atof(str);
+            titleElement->QueryStringAttribute("Z",&str);
+            if(str)
+                t.z = atof(str);
 
-        figs->translacoes.push_back(t);
-        titleElement = titleElement->NextSiblingElement();
+            figs->translacoes.push_back(t);
+            titleElement = titleElement->NextSiblingElement();
+        }
     }
 
     if(strcmp(titleElement->Value(),"rotate") == 0)
@@ -324,6 +376,10 @@ void readGroup(tinyxml2::XMLElement *titleElement, figures* figs, vector<int> id
         titleElement->QueryStringAttribute("angle",&str);
         if(str)
             r.angle = atof(str),str = nullptr;
+
+        titleElement->QueryStringAttribute("time",&str);
+        if(str)
+            r.time = atoi(str),str = nullptr;
 
         titleElement->QueryStringAttribute("axisX",&str);
         if(str)
@@ -486,18 +542,76 @@ void drawVBOs(int i)
 
 }
 
+void applyDynamicTranslate(translate t)
+{
+    const float NUM_STEPS = 100;
+    float pos[3];
+    float deriv[3];
+    float* anterior = (float*) malloc(sizeof (float) * 4);
+
+    anterior[0] = 0;
+    anterior[1] = 1;
+    anterior[2] = 0;
+
+    std::vector<std::vector<float>> points;
+    float partialTime = glutGet(GLUT_ELAPSED_TIME) / t.time;
+
+    float** p = (float**) malloc(sizeof (float*) * 4);
+    for(int i = 0; i < 4; i++) {
+        p[i] = (float*) malloc(sizeof (float*)*3);
+        p[i][0] = t.vX[i];
+        p[i][1] = t.vY[i];
+        p[i][2] = t.vZ[i];
+    }
+
+    /*for(int i = 0; i < 4; i++) {
+        printf("PT: %f %f %f\n", p[i][0], p[i][1], p[i][2]);
+    }*/
+
+    printf("Partialtime: %.3f\n", partialTime);
+    getGlobalCatmullRomPoint(p, partialTime, (float *) pos, (float *) deriv);
+    printf("%f %f %f\n", pos[0],pos[1],pos[2]);
+    glTranslatef(pos[0],pos[1],pos[2]);
+
+    normalize((float *)deriv);
+
+    float z[3];
+    cross((float *) deriv, anterior, (float * ) z);
+    normalize((float *) z);
+
+    cross((float *) z, (float *) deriv, anterior);
+    normalize(anterior);
+
+    float rotateMatrix[4][4];
+    buildRotMatrix((float *) deriv,anterior,(float *) z,(float *) rotateMatrix);
+
+    glMultMatrixf((float *) rotateMatrix);
+    glEnd();
+}
+
 void applyTransf(int i)
 {
     for(int ids = 0 ; ids < globalFigs->figuras[i].id.size() ;ids++) {
         for (int t = 0; t < globalFigs->translacoes.size(); t++)
             if (globalFigs->figuras[i].id[ids] == globalFigs->translacoes[t].id)
-                glTranslatef(globalFigs->translacoes[t].x, globalFigs->translacoes[t].y, globalFigs->translacoes[t].z);
+            {
+                if(globalFigs->translacoes[t].isStatic)
+                    glTranslatef(globalFigs->translacoes[t].x, globalFigs->translacoes[t].y, globalFigs->translacoes[t].z);
+                else
+                    applyDynamicTranslate(globalFigs->translacoes[t]);
+            }
 
 
         for (int t = 0; t < globalFigs->rotacoes.size(); t++)
             if (globalFigs->figuras[i].id[ids] == globalFigs->rotacoes[t].id)
+            {
+                if(globalFigs->rotacoes[t].time)
+                    glRotatef(glutGet(GLUT_ELAPSED_TIME)/ globalFigs->rotacoes[t].time, globalFigs->rotacoes[t].aX, globalFigs->rotacoes[t].aY,
+                              globalFigs->rotacoes[t].aZ);
+                else
                 glRotatef(globalFigs->rotacoes[t].angle, globalFigs->rotacoes[t].aX, globalFigs->rotacoes[t].aY,
                           globalFigs->rotacoes[t].aZ);
+            }
 
 
         for (int t = 0; t < globalFigs->escalas.size(); t++)
@@ -508,6 +622,7 @@ void applyTransf(int i)
 }
 
 void renderScene() {
+    static float t = 0;
     // clear buffers
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -539,6 +654,7 @@ void renderScene() {
 
     // End of frame
     glutSwapBuffers();
+    t += 0.00001;
 }
 
 // write function to process keyboard events
@@ -580,6 +696,7 @@ int main(int argc, char **argv) {
 
     globalFigs = readXml();
     //printFigures(globalFigs);
+    //printTransNotStatic();
 
 
     // init GLUT and the window
@@ -596,6 +713,7 @@ int main(int argc, char **argv) {
 
     // Required callback registry
     glutDisplayFunc(renderScene);
+    glutIdleFunc(renderScene);
     glutReshapeFunc(changeSize);
 
     // put here the registration of the keyboard callbacks

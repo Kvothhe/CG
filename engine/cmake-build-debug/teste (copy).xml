@@ -90,10 +90,15 @@
 
         <!-- COMETA -->
         <group>
-            <translate X="1" Y="5" Z="0"/>
+            <translate time="10">
+                <point X="-2" Y="0" Z="-1"/>
+                <point X="1" Y="2" Z="1"/>
+                <point X="4" Y="2" Z="4"/>
+                <point X="-1" Y="-2" Z="-1"/>
+            </translate>
             <scale X="0.3" Y="0.3" Z="0.3"/>
             <models>
-                <model file="sphere.3d" diffR="97" diffG="145" diffB="221"/>
+                <model file="bezier.3d" diffR="97" diffG="145" diffB="221"/>
             </models>
         </group>
     </group>

@@ -82,6 +82,12 @@
 				</MakeCommands>
 			</Target>
 		</Build>
+		<Unit filename="/home/kvothe/Desktop/cg/engine/catmull.cpp">
+			<Option target="engine"/>
+		</Unit>
+		<Unit filename="/home/kvothe/Desktop/cg/engine/catmull.h">
+			<Option target="engine"/>
+		</Unit>
 		<Unit filename="/home/kvothe/Desktop/cg/engine/main.cpp">
 			<Option target="engine"/>
 		</Unit>
