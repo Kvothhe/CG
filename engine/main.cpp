@@ -95,6 +95,12 @@ struct vbo
     GLuint verticeCount;
 };
 
+struct lights
+{
+    char* type;
+    vertice pos;
+};
+
 struct figures
 {
     vector<figure> figuras;
@@ -103,6 +109,7 @@ struct figures
     vector<translate> translacoes;
     vector<vbo> vbos;
     vector<char*> vbosName;
+    vector<lights> luzes;
 };
 figures* globalFigs;
 
@@ -170,6 +177,7 @@ void printTransf(figures* figs, int id)
 
 void printFigures(figures* figs)
 {
+    printf("%s x=%f, y=%f, z=%f\n",figs->luzes[0].type, figs->luzes[0].pos.x, figs->luzes[0].pos.y,figs->luzes[0].pos.z);
     for(int i = 0; i < figs->figuras.size(); i++)
     {
         printf("Fig: %s\n",figs->figuras[i].model);
@@ -439,7 +447,28 @@ void readGroup(tinyxml2::XMLElement *titleElement, figures* figs, vector<int> id
 }
 
 
+void readLights(tinyxml2::XMLElement *titleElement, figures* figs)
+{
+    tinyxml2::XMLElement *elem = titleElement;
+    elem = elem->FirstChildElement();
+    const char* str = (char*) malloc(sizeof(20));
 
+    if(strcmp(elem->Value(),"light") == 0)
+    {
+        lights luz{};
+        luz.type = (char*) malloc(sizeof(20));
+        vertice v{};
+        elem->QueryStringAttribute("type", &str);
+        strcpy(luz.type,str);
+        elem->QueryStringAttribute("posX", &str);
+        luz.pos.x = atof(str);
+        elem->QueryStringAttribute("posY", &str);
+        luz.pos.y = atof(str);
+        elem->QueryStringAttribute("posZ", &str);
+        luz.pos.z = atof(str);
+        figs->luzes.push_back(luz);
+    }
+}
 
 figures* readXml()
 {
@@ -455,6 +484,11 @@ figures* readXml()
     if(strcmp(titleElement->Value(),"scene") == 0)
     {
         titleElement = titleElement->FirstChildElement();
+        if(strcmp(titleElement->Value(),"lights") == 0)
+        {
+            readLights(titleElement,figs);
+            titleElement = titleElement->NextSiblingElement();
+        }
         if(strcmp(titleElement->Value(),"group") == 0)
             readGroup(titleElement,figs,ids);
     }
@@ -533,8 +567,16 @@ void draw(vector<vertice> arr, float* rgb){
 
 void drawVBOs(int i,float* rgb)
 {
-    int iC =  globalFigs->vbos[i].indexCount;
+    //materials
+    float dark[]={0.2,0.2,0.2,1.0};
+    float white[]={0.8,0.8,0.8,1.0};
+    float color[]={rgb[0]/255,rgb[1]/255,rgb[2]/255,1.0};
 
+    glMaterialfv(GL_FRONT,GL_AMBIENT_AND_DIFFUSE,color);
+    glMaterialfv(GL_FRONT,GL_SPECULAR,white);
+    glMaterialf(GL_FRONT,GL_SHININESS,128);
+
+    int iC =  globalFigs->vbos[i].indexCount;
     glBindBuffer(GL_ARRAY_BUFFER,globalFigs->vbos[i].vertice);
     glVertexPointer(3,GL_FLOAT,0,0);
     glColor3f(rgb[0]/255,rgb[1]/255,rgb[2]/255);
@@ -628,6 +670,10 @@ void renderScene() {
               0.0,0.0,0.0,
               0.0f,1.0f,0.0f);
 
+    float pos[4]={-10.0,1.0,0.0,0.0};
+    glLightfv(GL_LIGHT0,GL_POSITION,pos);
+
+
     // put the geometric transformations here
 
 
@@ -688,6 +734,20 @@ void reactKeyboard(unsigned char c, int x, int y) {
 }
 
 
+void turnOnTheLights()
+{
+    glEnable(GL_LIGHTING);
+    glEnable(GL_LIGHT0);
+
+    GLfloat dark[4]={0.2,0.2,0.2,1.0};
+    GLfloat white[4]={1.0,1.0,1.0,1.0};
+
+    //light colors
+    glLightfv(GL_LIGHT0,GL_AMBIENT,dark);
+    glLightfv(GL_LIGHT0,GL_DIFFUSE,white);
+    glLightfv(GL_LIGHT0,GL_SPECULAR,white);
+}
+
 int main(int argc, char **argv) {
 
     globalFigs = readXml();
@@ -719,8 +779,9 @@ int main(int argc, char **argv) {
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);
     glEnable(GL_VERTEX_ARRAY);
-    glPolygonMode(GL_FRONT, GL_LINE);
+    glPolygonMode(GL_FRONT, GL_TRIANGLES);
     spherical2Cartesian();
+    turnOnTheLights();
 
     prepareData();
     // enter GLUT's main cycle
