@@ -256,6 +256,18 @@ GLUT_Xmu_LIBRARY:FILEPATH=/usr/lib/x86_64-linux-gnu/libXmu.so
 //Path to a library.
 GLUT_glut_LIBRARY:FILEPATH=/usr/lib/x86_64-linux-gnu/libglut.so
 
+//The file that corresponds to the il (system?) utility library.
+ILUT_LIBRARIES:FILEPATH=/usr/lib/x86_64-linux-gnu/libILUT.so
+
+//The file that corresponds to the il utility library.
+ILU_LIBRARIES:FILEPATH=/usr/lib/x86_64-linux-gnu/libILU.so
+
+//The path to the directory that contains il.h
+IL_INCLUDE_DIR:PATH=/usr/include/IL
+
+//The file that corresponds to the base il library.
+IL_LIBRARIES:FILEPATH=/usr/lib/x86_64-linux-gnu/libIL.so
+
 //Path to a file.
 OPENGL_EGL_INCLUDE_DIR:PATH=/usr/include
 
@@ -451,6 +463,8 @@ CMAKE_STRIP-ADVANCED:INTERNAL=1
 CMAKE_UNAME:INTERNAL=/usr/bin/uname
 //ADVANCED property for variable: CMAKE_VERBOSE_MAKEFILE
 CMAKE_VERBOSE_MAKEFILE-ADVANCED:INTERNAL=1
+//Details about finding DevIL
+FIND_PACKAGE_MESSAGE_DETAILS_DevIL:INTERNAL=[/usr/lib/x86_64-linux-gnu/libIL.so][/usr/lib/x86_64-linux-gnu/libILU.so][/usr/include/IL][v()]
 //Details about finding GLEW
 FIND_PACKAGE_MESSAGE_DETAILS_GLEW:INTERNAL=[/usr/include][/usr/lib/x86_64-linux-gnu/libGLEW.so][v2.1.0()]
 //Details about finding GLUT

@@ -25,6 +25,7 @@ set(CMAKE_MAKEFILE_DEPENDS
   "/snap/clion/151/bin/cmake/linux/share/cmake-3.19/Modules/Compiler/GNU-C.cmake"
   "/snap/clion/151/bin/cmake/linux/share/cmake-3.19/Modules/Compiler/GNU-CXX.cmake"
   "/snap/clion/151/bin/cmake/linux/share/cmake-3.19/Modules/Compiler/GNU.cmake"
+  "/snap/clion/151/bin/cmake/linux/share/cmake-3.19/Modules/FindDevIL.cmake"
   "/snap/clion/151/bin/cmake/linux/share/cmake-3.19/Modules/FindGLEW.cmake"
   "/snap/clion/151/bin/cmake/linux/share/cmake-3.19/Modules/FindGLUT.cmake"
   "/snap/clion/151/bin/cmake/linux/share/cmake-3.19/Modules/FindOpenGL.cmake"

@@ -9,6 +9,8 @@
 /home/kvothe/Desktop/cg/generator/bezier.cpp
 cstring
 -
+valarray
+-
 bezier.h
 /home/kvothe/Desktop/cg/generator/bezier.h
 

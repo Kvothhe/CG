@@ -24,6 +24,49 @@ void write(int counter, struct vertice arr[], std::string path) {
 
 }
 
+void writeIndices(int desde, int ate, std::string path)
+{
+    ofstream myfile;
+    myfile.open(path, std::ofstream::out | std::ofstream::app);
+
+    myfile << ate << endl;
+
+    for (int count = desde; count < ate; count++) {
+        myfile << count << endl;
+    }
+
+    myfile.close();
+
+}
+
+void writeNormals(float r, int counter, struct vertice arr[], std::string path) {
+    ofstream myfile;
+    myfile.open(path, std::ofstream::out | std::ofstream::app);
+
+    myfile << counter << endl;
+
+    for (int count = 0; count < counter; count++) {
+        myfile << arr[count].x/r << " " << arr[count].y/r << " " << arr[count].z/r << endl;
+    }
+
+    myfile.close();
+
+}
+
+void writeTextures(vector <vertice> ver, std::string path) {
+    ofstream myfile;
+    myfile.open(path, std::ofstream::out | std::ofstream::app);
+
+    myfile << ver.size() << endl;
+
+    for (int count = 0; count < ver.size(); count++) {
+        myfile << ver[count].x << " " << ver[count].y << endl;
+    }
+
+    myfile.close();
+
+}
+
 void plane(float size, std::string path) {
 	float side = size / 2;
 
@@ -114,66 +157,106 @@ void box(float length, float width, float height,std::string path) {
 
 void sphere(float r, int slices, int stacks,std::string path) {
 
-	float alpha = -(M_PI / 2); // [-pi/2,pi/2] angulo vertical
+    float alpha = -(M_PI / 2); // [-pi/2,pi/2] angulo vertical
 
-	float deslAlpha = M_PI / slices;
-	float deslBeta = 2 * M_PI / stacks;
+    float deslAlpha = M_PI / slices;
+    float deslBeta = 2 * M_PI / stacks;
 
-	int count = ((stacks - 2) * slices * 6) + (2 * slices * 3);
+    int count = ((stacks - 2) * slices * 6) + (2 * slices * 3);
 
-	struct vertice* arr = (vertice *) malloc(sizeof(struct vertice) * count);
+    struct vertice *arr = (vertice *) malloc(sizeof(struct vertice) * count);
 
-	int aux = 0;
+    int aux = 0;
 
-	// desenhar os triangulos do fundo
+    // desenhar os triangulos do fundo
 
-	float beta = 0; // [0,2pi] angulo horizontal
-	for (beta; beta < (2 * M_PI); beta += deslBeta) {
-		arr[aux].x = ((r * cos(alpha + deslAlpha)) * cos(beta + deslBeta)); arr[aux].y = r * sin(alpha + deslAlpha); arr[aux].z = ((r * cos(alpha + deslAlpha))* sin(beta + deslBeta));
-		aux++;
-		arr[aux].x = ((r * cos(alpha)) * cos(beta + deslBeta)); arr[aux].y = -r; arr[aux].z = (r * cos(alpha))* sin(beta + deslBeta);
-		aux++;
-		arr[aux].x = ((r * cos(alpha + deslAlpha)) * cos(beta)); arr[aux].y = r * sin(alpha + deslAlpha); arr[aux].z = (r * cos(alpha + deslAlpha))* sin(beta);
-		aux++;
-	}
+    float beta = 0; // [0,2pi] angulo horizontal
+    for (beta; beta < (2 * M_PI); beta += deslBeta) {
+        arr[aux].x = ((r * cos(alpha + deslAlpha)) * cos(beta + deslBeta));
+        arr[aux].y = r * sin(alpha + deslAlpha);
+        arr[aux].z = ((r * cos(alpha + deslAlpha)) * sin(beta + deslBeta));
+        aux++;
+        arr[aux].x = ((r * cos(alpha)) * cos(beta + deslBeta));
+        arr[aux].y = -r;
+        arr[aux].z = (r * cos(alpha)) * sin(beta + deslBeta);
+        aux++;
+        arr[aux].x = ((r * cos(alpha + deslAlpha)) * cos(beta));
+        arr[aux].y = r * sin(alpha + deslAlpha);
+        arr[aux].z = (r * cos(alpha + deslAlpha)) * sin(beta);
+        aux++;
+    }
 
-	alpha += deslAlpha;
+    alpha += deslAlpha;
 
-	// desenhar os triangulos das laterais
-	 
-	for (alpha; alpha < (M_PI / 2) - deslAlpha; alpha += deslAlpha) {
-		float beta = 0; // [0,2pi] angulo horizontal
-		for (beta; beta < (2 * M_PI); beta += deslBeta) {
-			arr[aux].x = ((r * cos(alpha)) * cos(beta + deslBeta)); arr[aux].y = r * sin(alpha); arr[aux].z = (r * cos(alpha))* sin(beta + deslBeta);
-			aux++;
-			arr[aux].x = ((r * cos(alpha)) * cos(beta)); arr[aux].y = r * sin(alpha); arr[aux].z = (r * cos(alpha)) * sin(beta);
-			aux++;
-			arr[aux].x = ((r * cos(alpha + deslAlpha)) * cos(beta + deslBeta)); arr[aux].y = r * sin(alpha + deslAlpha); arr[aux].z = (r * cos(alpha + deslAlpha)) * sin(beta + deslBeta);
-			aux++;
+    // desenhar os triangulos das laterais
 
-			arr[aux].x = ((r * cos(alpha + deslAlpha)) * cos(beta + deslBeta)); arr[aux].y = r * sin(alpha + deslAlpha); arr[aux].z = (r * cos(alpha + deslAlpha)) * sin(beta + deslBeta);
-			aux++;
-			arr[aux].x = ((r * cos(alpha)) * cos(beta)); arr[aux].y = r * sin(alpha); arr[aux].z = (r * cos(alpha)) * sin(beta);
-			aux++;
-			arr[aux].x = ((r * cos(alpha + deslAlpha)) * cos(beta)); arr[aux].y = r * sin(alpha + deslAlpha); arr[aux].z = (r * cos(alpha + deslAlpha)) * sin(beta);
-			aux++;
-		}
-	}
+    for (alpha; alpha < (M_PI / 2) - deslAlpha; alpha += deslAlpha) {
+        float beta = 0; // [0,2pi] angulo horizontal
+        for (beta; beta < (2 * M_PI); beta += deslBeta) {
+            arr[aux].x = ((r * cos(alpha)) * cos(beta + deslBeta));
+            arr[aux].y = r * sin(alpha);
+            arr[aux].z = (r * cos(alpha)) * sin(beta + deslBeta);
+            aux++;
+            arr[aux].x = ((r * cos(alpha)) * cos(beta));
+            arr[aux].y = r * sin(alpha);
+            arr[aux].z = (r * cos(alpha)) * sin(beta);
+            aux++;
+            arr[aux].x = ((r * cos(alpha + deslAlpha)) * cos(beta + deslBeta));
+            arr[aux].y = r * sin(alpha + deslAlpha);
+            arr[aux].z = (r * cos(alpha + deslAlpha)) * sin(beta + deslBeta);
+            aux++;
 
-	// desenhar os triangulos do topo
+            arr[aux].x = ((r * cos(alpha + deslAlpha)) * cos(beta + deslBeta));
+            arr[aux].y = r * sin(alpha + deslAlpha);
+            arr[aux].z = (r * cos(alpha + deslAlpha)) * sin(beta + deslBeta);
+            aux++;
+            arr[aux].x = ((r * cos(alpha)) * cos(beta));
+            arr[aux].y = r * sin(alpha);
+            arr[aux].z = (r * cos(alpha)) * sin(beta);
+            aux++;
+            arr[aux].x = ((r * cos(alpha + deslAlpha)) * cos(beta));
+            arr[aux].y = r * sin(alpha + deslAlpha);
+            arr[aux].z = (r * cos(alpha + deslAlpha)) * sin(beta);
+            aux++;
+        }
+    }
 
-	beta = 0; // [0,2pi] angulo horizontal
-	for (beta; beta < (2 * M_PI); beta += deslBeta) {
-		arr[aux].x = ((r * cos(alpha)) * cos(beta)); arr[aux].y = r * sin(alpha); arr[aux].z = (r * cos(alpha)) * sin(beta);
-		aux++;
-		arr[aux].x = ((r * cos(alpha + deslAlpha)) * cos(beta + deslBeta)); arr[aux].y = r; arr[aux].z = (r * cos(alpha + deslAlpha)) * sin(beta + deslBeta);
-		aux++;
-		arr[aux].x = ((r * cos(alpha)) * cos(beta + deslBeta)); arr[aux].y = r * sin(alpha); arr[aux].z = (r * cos(alpha)) * sin(beta + deslBeta);
-		aux++;
+    // desenhar os triangulos do topo
 
-	}
+    beta = 0; // [0,2pi] angulo horizontal
+    for (beta; beta < (2 * M_PI); beta += deslBeta) {
+        arr[aux].x = ((r * cos(alpha)) * cos(beta));
+        arr[aux].y = r * sin(alpha);
+        arr[aux].z = (r * cos(alpha)) * sin(beta);
+        aux++;
+        arr[aux].x = ((r * cos(alpha + deslAlpha)) * cos(beta + deslBeta));
+        arr[aux].y = r;
+        arr[aux].z = (r * cos(alpha + deslAlpha)) * sin(beta + deslBeta);
+        aux++;
+        arr[aux].x = ((r * cos(alpha)) * cos(beta + deslBeta));
+        arr[aux].y = r * sin(alpha);
+        arr[aux].z = (r * cos(alpha)) * sin(beta + deslBeta);
+        aux++;
 
-	write(count, arr, path);
+    }
+
+    write(count, arr, path);
+    writeIndices(0, aux, path);
+    writeNormals(r, count, arr, path);
+
+    vector<vertice> textures;
+    for (int stack = 0; stack <= stacks; stack++)
+    {
+        for (int slice = 0; slice <= slices; slice++)
+        {
+            float x,y;
+            x = (slices - (float)slice) / slices;
+            y = (stacks - (float)stack) / stacks;
+            vertice n{x,y,0};
+            textures.push_back(n);
+        }
+    }
+    writeTextures(textures,path);
 }
 
 void cone(float r, float h, int slices, int stacks, std::string path) {
@@ -253,6 +336,9 @@ int main(int argc, char** argv) {
         strcat(destFile, "./");
         strcat(destFile,argv[5]);
         sphere(atof(argv[2]),atoi(argv[3]),atoi(argv[4]),destFile);
+        int slices = atoi(argv[4]);
+        int stacks = atoi(argv[3]);
+        int count = ((stacks - 1) * slices * 6) + (2 * slices * 3);
     }
 
     if(argc == 6 && strcmp(argv[1],"box") == 0)
